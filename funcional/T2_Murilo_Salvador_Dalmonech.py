@@ -112,15 +112,15 @@ def carro_de_luxo(Modelo=None):
 # Encontrar carros que iniciem com uma letra Letra
 def encontrar_carros_com_letra(Letra=None, Lista=None):
     return (
-        (lambda carros_filtrados: 
+        (lambda carros_filtrados:
             (lambda: 
                 list(map(lambda c: (c["Modelo"], c["Marca"]), carros_filtrados))
-                if Lista else
-                list(map(lambda c: print((c["Modelo"], c["Marca"])), carros_filtrados))
+                if Lista is None else
+                reduce(lambda acc, x: acc and (x in list(map(lambda c: (c["Modelo"], c["Marca"]), carros_filtrados))), Lista, True)
             )()
-        )(list(filter(lambda c: c["Modelo"].startswith(Letra) if Letra else True, carros)))
-        if Lista else
-        reduce(lambda acc, x: acc and (x in list(map(lambda c: (c["Modelo"], c["Marca"]), carros_filtrados))), Lista, True)
+        )(
+            list(filter(lambda c: c["Modelo"].startswith(Letra) if Letra else True, carros))
+        )
     )
 
 ############################################################################################
@@ -141,12 +141,12 @@ def encontrar_carros_de_marca(Marca=None, Lista=None):
         (lambda carros_filtrados:
             (lambda: 
                 list(map(lambda c: (c["Modelo"], c["Marca"]), carros_filtrados))
-                if Lista else
-                list(map(lambda c: print((c["Modelo"], c["Marca"])), carros_filtrados))
+                if Lista is None else
+                reduce(lambda acc, x: acc and (x in list(map(lambda c: (c["Modelo"], c["Marca"]), carros_filtrados))), Lista, True)
             )()
-        )(list(filter(lambda c: c["Marca"] == Marca if Marca else True, carros)))
-        if Lista else
-        reduce(lambda acc, x: acc and (x in list(map(lambda c: (c["Modelo"], c["Marca"]), carros_filtrados))), Lista, True)
+        )(
+            list(filter(lambda c: c["Marca"] == Marca if Marca else True, carros))
+        )
     )
     
 ############################################################################################
