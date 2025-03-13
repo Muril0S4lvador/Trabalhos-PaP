@@ -58,23 +58,21 @@ carros = df[["Modelo", "Marca", "Categoria", "Inicio", "Fim"]].dropna().to_dict(
 ############################################################################################
 # Carros são concorrentes se as marcas forem diferentes e as categorias forem as mesmas
 def concorrentes(Modelo1=None, Modelo2=None):
-    pares = list(combinations(carros, 2))
-
-    concorrentes = list(filter(lambda p: p[0]["Marca"] != p[1]["Marca"] and p[0]["Categoria"] == p[1]["Categoria"], pares))
-
-    if not Modelo1 and not Modelo2:
-        # Caso ambos sejam vazios, retorna todos os concorrentes
-        for c1, c2 in concorrentes:
-            print(c1["Modelo"], "-", c2["Modelo"])
-    elif Modelo1 and not Modelo2:
-        # Caso apenas um modelo seja passado, retorna seus concorrentes
-        modelos_concorrentes = list(filter(lambda p: p[0]["Modelo"] == Modelo1 or p[1]["Modelo"] == Modelo1, concorrentes))
-        for c1, c2 in modelos_concorrentes:
-            print(c1["Modelo"], "-", c2["Modelo"])
-    elif Modelo1 and Modelo2:
-        # Caso os dois modelos sejam passados, retorna True ou False
-        return any((p[0]["Modelo"] == Modelo1 and p[1]["Modelo"] == Modelo2) or 
-                   (p[0]["Modelo"] == Modelo2 and p[1]["Modelo"] == Modelo1) for p in concorrentes)
+    return (
+        (lambda concorrentes: 
+            (lambda: 
+                list(map(lambda p: f"{p[0]['Modelo']} - {p[1]['Modelo']}", concorrentes))
+                if not Modelo1 and not Modelo2 else
+                (lambda modelos_concorrentes: 
+                    list(map(lambda p: f"{p[0]['Modelo']} - {p[1]['Modelo']}", modelos_concorrentes))
+                    if Modelo1 and not Modelo2 else
+                    any((p[0]["Modelo"] == Modelo1 and p[1]["Modelo"] == Modelo2) or
+                         (p[0]["Modelo"] == Modelo2 and p[1]["Modelo"] == Modelo1) for p in concorrentes)
+                )(list(filter(lambda p: p[0]["Modelo"] == Modelo1 or p[1]["Modelo"] == Modelo1, concorrentes)))
+            )() if not Modelo1 or not Modelo2 else
+            any((p[0]["Modelo"] == Modelo1 and p[1]["Modelo"] == Modelo2) or
+                 (p[0]["Modelo"] == Modelo2 and p[1]["Modelo"] == Modelo1) for p in concorrentes)
+        )(list(filter(lambda p: p[0]["Marca"] != p[1]["Marca"] and p[0]["Categoria"] == p[1]["Categoria"], combinations(carros, 2)))))
     
 ############################################################################################
 ######################## EXEMPLOS DE CONSULTAS #############################################
@@ -90,15 +88,15 @@ def concorrentes(Modelo1=None, Modelo2=None):
 ############################################################################################
 # Carros de luxo se são de determinada marca ou categorias
 def carro_de_luxo(Modelo=None):
-    criterios = ["Rolls-Royce", "Sport", "Convertible", "Limousine"]
-    
-    carros_luxo = list(filter(lambda c: any(criterio in (c["Marca"] or "") or criterio in (c["Categoria"] or "") for criterio in criterios), carros))
-    
-    if not Modelo:
-        for c in carros_luxo:
-            print(c["Modelo"])
-    else:
-        return any(c["Modelo"] == Modelo for c in carros_luxo)
+    return (
+        (lambda carros_luxo: 
+            (lambda: 
+                list(map(lambda c: c["Modelo"], carros_luxo))
+                if not Modelo else
+                any(c["Modelo"] == Modelo for c in carros_luxo)
+            )()
+        )(list(filter(lambda c: any(criterio in (c["Marca"] or "") or criterio in (c["Categoria"] or "") for criterio in ["Rolls-Royce", "Sport", "Convertible", "Limousine"]), carros)))
+    )
     
 ############################################################################################
 ######################## EXEMPLOS DE CONSULTAS #############################################
@@ -113,15 +111,17 @@ def carro_de_luxo(Modelo=None):
 ############################################################################################
 # Encontrar carros que iniciem com uma letra Letra
 def encontrar_carros_com_letra(Letra=None, Lista=None):
-    carros_filtrados = list(filter(lambda c: c["Modelo"].startswith(Letra), carros)) if Letra else carros
-    
-    if Lista is None:
-        for c in carros_filtrados:
-            print((c["Modelo"], c["Marca"]))
-    else:
-        carros_tuplas = list(map(lambda c: (c["Modelo"], c["Marca"]), carros_filtrados))
-        
-        return reduce(lambda acc, x: acc and (x in carros_tuplas), Lista, True)
+    return (
+        (lambda carros_filtrados: 
+            (lambda: 
+                list(map(lambda c: (c["Modelo"], c["Marca"]), carros_filtrados))
+                if Lista else
+                list(map(lambda c: print((c["Modelo"], c["Marca"])), carros_filtrados))
+            )()
+        )(list(filter(lambda c: c["Modelo"].startswith(Letra) if Letra else True, carros)))
+        if Lista else
+        reduce(lambda acc, x: acc and (x in list(map(lambda c: (c["Modelo"], c["Marca"]), carros_filtrados))), Lista, True)
+    )
 
 ############################################################################################
 ######################## EXEMPLOS DE CONSULTAS #############################################
@@ -137,15 +137,17 @@ def encontrar_carros_com_letra(Letra=None, Lista=None):
 ############################################################################################
 # Encontrar carros que pertencem a uma determinada Marca
 def encontrar_carros_de_marca(Marca=None, Lista=None):
-    carros_filtrados = list(filter(lambda c: c["Marca"] == Marca, carros)) if Marca else carros
-    
-    if Lista is None:
-        for c in carros_filtrados:
-            print((c["Modelo"], c["Marca"]))
-    else:
-        carros_tuplas = list(map(lambda c: (c["Modelo"], c["Marca"]), carros_filtrados))
-        
-        return reduce(lambda acc, x: acc and (x in carros_tuplas), Lista, True)
+    return (
+        (lambda carros_filtrados:
+            (lambda: 
+                list(map(lambda c: (c["Modelo"], c["Marca"]), carros_filtrados))
+                if Lista else
+                list(map(lambda c: print((c["Modelo"], c["Marca"])), carros_filtrados))
+            )()
+        )(list(filter(lambda c: c["Marca"] == Marca if Marca else True, carros)))
+        if Lista else
+        reduce(lambda acc, x: acc and (x in list(map(lambda c: (c["Modelo"], c["Marca"]), carros_filtrados))), Lista, True)
+    )
     
 ############################################################################################
 ######################## EXEMPLOS DE CONSULTAS #############################################
@@ -161,9 +163,13 @@ def encontrar_carros_de_marca(Marca=None, Lista=None):
 ############################################################################################
 # Quantidade de carros que pertencem a uma determinada Marca
 def carros_por_marca(Marca=None):
-    quantidade = reduce(lambda acc, c: acc + 1 if (not Marca or c["Marca"] == Marca) else acc, carros, 0)
-    
-    print(f'Total de carros da marca {Marca}: {quantidade}' if Marca else f'Total de carros: {quantidade}')
+    return (
+        (lambda quantidade: 
+            print(f'Total de carros da marca {Marca}: {quantidade}' if Marca else f'Total de carros: {quantidade}')
+        )(
+            reduce(lambda acc, c: acc + 1 if (not Marca or c["Marca"] == Marca) else acc, carros, 0)
+        )
+    )
 
 ############################################################################################
 ######################## EXEMPLOS DE CONSULTAS #############################################
@@ -178,21 +184,22 @@ def carros_por_marca(Marca=None):
 ############################################################################################
 # Regra para encontrar o modelo mais antigo de uma marca ou de todos
 def modelo_mais_antigo(Marca=None):
-    carros_validos = list(filter(lambda c: c.get("Inicio") and c["Inicio"].isdigit() and int(c["Inicio"]) > 1800 and (Marca is None or c["Marca"] == Marca), carros))
-    
-    if not carros_validos:
-        print("Nenhum carro encontrado com os critérios informados.")
-        return
-    
-    carro_mais_antigo = sorted(carros_validos, key=lambda c: int(c["Inicio"]))[0]
-    
-    ano_atual = 2025
-    idade = ano_atual - int(carro_mais_antigo["Inicio"])
-    
-    print(f'Modelo: {carro_mais_antigo["Modelo"]}')
-    print(f'Marca: {carro_mais_antigo["Marca"]}')
-    print(f'Ano Início Fabricação: {carro_mais_antigo["Inicio"]}')
-    print(f'Idade do Modelo: {idade} anos')
+    return (
+        (lambda carros_validos:
+            (lambda: 
+                (lambda carro_mais_antigo:
+                    (lambda idade: 
+                        (print(f'Modelo: {carro_mais_antigo["Modelo"]}'),
+                         print(f'Marca: {carro_mais_antigo["Marca"]}'),
+                         print(f'Ano Início Fabricação: {carro_mais_antigo["Inicio"]}'),
+                         print(f'Idade do Modelo: {idade} anos'))
+                    )(2025 - int(carro_mais_antigo["Inicio"]))
+                )(sorted(carros_validos, key=lambda c: int(c["Inicio"]))[0])
+            )()
+        )(
+            list(filter(lambda c: c.get("Inicio") and c["Inicio"].isdigit() and int(c["Inicio"]) > 1800 and (Marca is None or c["Marca"] == Marca), carros))
+        ) if list(filter(lambda c: c.get("Inicio") and c["Inicio"].isdigit() and int(c["Inicio"]) > 1800 and (Marca is None or c["Marca"] == Marca), carros)) else print("Nenhum carro encontrado com os critérios informados.")
+    )
 
 ############################################################################################
 ######################## EXEMPLOS DE CONSULTAS #############################################
@@ -207,17 +214,17 @@ def modelo_mais_antigo(Marca=None):
 ############################################################################################
 # Pega todos os modelos que não pagam mais IPVA no Brasil por marca
 def modelo_livre_de_ipva_por_marca(Marca=None, Lista=None):
-    ano_atual = 2025
-    ano_limite = ano_atual - 15
-    
-    carros_isentos = list(filter(lambda c: c.get("Fim") and c["Fim"].isdigit() and int(c["Fim"]) < ano_limite and (Marca is None or c["Marca"] == Marca), carros))
-    
-    if Lista is None:
-        list(map(lambda c: print((c["Modelo"], c["Marca"])), carros_isentos))
-    else:
-        carros_tuplas = list(map(lambda c: (c["Modelo"], c["Marca"]), carros_isentos))
-        
-        return reduce(lambda acc, x: acc and (x in carros_tuplas), Lista, True)
+    return (
+        (lambda carros_isentos:
+            (lambda: 
+                list(map(lambda c: print((c["Modelo"], c["Marca"])), carros_isentos))
+                if Lista is None else
+                reduce(lambda acc, x: acc and (x in list(map(lambda c: (c["Modelo"], c["Marca"]), carros_isentos))), Lista, True)
+            )()
+        )(
+            list(filter(lambda c: c.get("Fim") and c["Fim"].isdigit() and int(c["Fim"]) < 2025 - 15 and (Marca is None or c["Marca"] == Marca), carros))
+        )
+    )
 
 ############################################################################################
 ######################## EXEMPLOS DE CONSULTAS #############################################
@@ -233,13 +240,13 @@ def modelo_livre_de_ipva_por_marca(Marca=None, Lista=None):
 ############################################################################################
 # Informa se uma marca possui ou não pelo menos um carro de luxo. Corte limita a busca a uma aparição true
 def possui_carros_de_luxo(Marca=None):
-    categorias_luxo = ["Rolls-Royce", "Sport", "Convertible", "Limousine"]
-    
-    if Marca:
-        return any(c["Marca"] == Marca and any(cat in c["Categoria"] for cat in categorias_luxo) for c in carros)
-    else:
-        marcas_luxo = set(map(lambda c: c["Marca"], filter(lambda c: any(cat in c["Categoria"] for cat in categorias_luxo), carros)))
-        print("Marcas com carros de luxo:", list(marcas_luxo))
+    return (
+        (lambda: 
+            any(c["Marca"] == Marca and any(cat in c["Categoria"] for cat in ["Rolls-Royce", "Sport", "Convertible", "Limousine"]) for c in carros)
+            if Marca else
+            (lambda marcas_luxo: print("Marcas com carros de luxo:", list(marcas_luxo)))(set(map(lambda c: c["Marca"], filter(lambda c: any(cat in c["Categoria"] for cat in ["Rolls-Royce", "Sport", "Convertible", "Limousine"]), carros))))
+        )()
+    )
 
 ############################################################################################
 ######################## EXEMPLOS DE CONSULTAS #############################################
